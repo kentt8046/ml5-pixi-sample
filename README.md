@@ -1,1 +1,1 @@
-# ml5-pixi-sample
+# TensorFlow + Pixi.js Sample
