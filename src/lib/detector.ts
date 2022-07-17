@@ -2,6 +2,8 @@ import "@tensorflow/tfjs-core";
 
 import "@tensorflow/tfjs-backend-webgl";
 
+import * as bodySegmentation from "@tensorflow-models/body-segmentation";
+import type { Segmentation } from "@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces";
 import * as faceDetection from "@tensorflow-models/face-detection";
 
 abstract class Detector<T> {
@@ -14,7 +16,7 @@ abstract class Detector<T> {
 
   listen(
     video: HTMLVideoElement,
-    callback: (objects: T) => void,
+    callback: (objects: T) => void | Promise<void>,
     onTick?: (frameRate: number) => void
   ) {
     if (this.listening) throw "already listened.";
@@ -32,6 +34,8 @@ abstract class Detector<T> {
         this.listening = false;
         this.current = 0;
         this.timestamp = 0;
+
+        onTick?.(0);
       },
     };
 
@@ -39,7 +43,7 @@ abstract class Detector<T> {
       if (!self.listening) return;
 
       const objects = await self.detect(video);
-      callback(objects);
+      await callback(objects);
 
       self.current++;
 
@@ -90,5 +94,50 @@ export class FaceDetector extends Detector<faceDetection.Face[]> {
     });
 
     return (this.self = new FaceDetector(detector));
+  }
+}
+
+export class BodyDetector extends Detector<Segmentation> {
+  private static self?: BodyDetector;
+
+  private constructor(
+    private readonly detector: bodySegmentation.BodySegmenter
+  ) {
+    super();
+  }
+
+  async detect(video: HTMLVideoElement) {
+    return this.detector
+      .segmentPeople(video)
+      .then((segmentations) => segmentations[0]);
+  }
+
+  static async init() {
+    if (this.self) return this.self;
+
+    const model = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
+    const detector = await bodySegmentation.createSegmenter(model, {
+      runtime: "tfjs",
+    });
+
+    return (this.self = new BodyDetector(detector));
+  }
+
+  static toImageData(segmentation: Segmentation) {
+    return bodySegmentation.toBinaryMask(
+      segmentation,
+      {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 0,
+      },
+      {
+        r: 0xff,
+        g: 0xff,
+        b: 0xff,
+        a: 0xff,
+      }
+    );
   }
 }

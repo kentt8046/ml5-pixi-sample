@@ -9,11 +9,12 @@ const offset = 100;
 export default class CameraView {
   private readonly app: PIXI.Application;
   private readonly mosaics: PIXI.Sprite[] = [];
+  private readonly mask = new PIXI.Sprite();
   private readonly pixelateFilter = new PixelateFilter(20);
   private readonly base: PIXI.Sprite;
 
   constructor(
-    private readonly video: HTMLVideoElement,
+    private readonly bgResource: PIXI.SpriteSource,
     canvas: HTMLCanvasElement,
     width: number,
     height: number
@@ -25,15 +26,24 @@ export default class CameraView {
       powerPreference: "high-performance",
     });
 
-    this.base = PIXI.Sprite.from(video);
+    this.base = PIXI.Sprite.from(bgResource);
     this.base.width = width;
     this.base.height = height;
 
     this.app.stage.addChild(this.base);
   }
 
+  changeBase(resource: PIXI.TextureSource, width?: number, height?: number) {
+    this.base.texture = PIXI.Texture.from(resource);
+    if (typeof width === "number") this.base.width = width;
+    if (typeof height === "number") this.base.height = height;
+  }
+
   updateMosaic(...faces: Face[]) {
-    const { width, height } = this.video;
+    isVideoElement(this.bgResource);
+
+    const video = this.bgResource;
+    const { width, height } = video;
 
     let i = 0;
     for (; i < faces.length; i++) {
@@ -55,7 +65,7 @@ export default class CameraView {
       if (rect.y + rect.h > height) rect.h = height - rect.y;
 
       mosaic.texture = new PIXI.Texture(
-        PIXI.BaseTexture.from(this.video),
+        PIXI.BaseTexture.from(video),
         new PIXI.Rectangle(rect.x, rect.y, rect.w, rect.h)
       );
 
@@ -71,14 +81,40 @@ export default class CameraView {
     });
   }
 
+  setMaskBase(resource: Parameters<typeof PIXI.Texture.from>[0]) {
+    this.mask.texture = PIXI.Texture.from(resource);
+  }
+
+  applyBgFilter(maskData: ImageData) {
+    const mask = (this.mask.mask ??= new PIXI.Sprite()) as PIXI.Sprite;
+
+    mask.texture = PIXI.Texture.from(
+      PIXI.BaseTexture.fromBuffer(
+        maskData.data as unknown as Uint8Array,
+        maskData.width,
+        maskData.height
+      )
+    );
+
+    this.app.stage.addChild(this.mask);
+  }
+
   clear() {
     this.mosaics.splice(0, this.mosaics.length).forEach((mosaic) => {
       mosaic.visible = false;
       this.app.stage.removeChild(mosaic);
     });
+
+    this.app.stage.removeChild(this.mask);
   }
 
   destroy() {
+    this.clear();
     this.app.destroy(false, true);
   }
+}
+
+function isVideoElement(obj: unknown): asserts obj is HTMLVideoElement {
+  if ((obj as HTMLVideoElement).tagName === "VIDEO") return;
+  throw "not video.";
 }
