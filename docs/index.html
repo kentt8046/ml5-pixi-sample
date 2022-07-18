@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/tf-pixi-sample/app.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/face_detection.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1632777926/selfie_segmentation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@3.18.0/dist/tf-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@3.18.0/dist/tf-backend-webgl.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.18.0/dist/tf-converter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-segmentation@1.0.1/dist/body-segmentation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection@1.0.1/dist/face-detection.min.js"></script>
+    <meta http-equiv="content-security-policy" content=""><title>TensorFlow + Pixi.js Sample</title>
+	<link rel="stylesheet" href="/tf-pixi-sample/_app/immutable/assets/__layout-8ba3659e.css">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/start-28c4cbb5.js">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/chunks/index-b8ce0743.js">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/chunks/paths-1c47712a.js">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/chunks/preload-helper-8983ef1c.js">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/pages/__layout.svelte-48035f48.js">
+	<link rel="modulepreload" href="/tf-pixi-sample/_app/immutable/pages/index.svelte-4317f09f.js">
+  </head>
+  <body>
+    
+
+
+<div><header class="Header svelte-8dnpv2"><h1 class="svelte-8dnpv2"><a href="/tf-pixi-sample">TensorFlow + Pixi.js Sample</a></h1>
+    <ul class="Header svelte-8dnpv2"><li><a href="/tf-pixi-sample/face-mosaic">顔認識 + モザイク</a></li>
+      <li><a href="/tf-pixi-sample/bg-replace">背景置換</a></li></ul></header>
+  <div class="HeaderSpace svelte-8dnpv2"></div>
+  <main class="svelte-8dnpv2">
+
+<p>TensorFlowの顔認識とポーズ認識で遊ぶ</p></main>
+</div>
+
+
+		<script type="module" data-sveltekit-hydrate="144f1ul">
+		import { start } from "/tf-pixi-sample/_app/immutable/start-28c4cbb5.js";
+		start({
+			target: document.querySelector('[data-sveltekit-hydrate="144f1ul"]').parentNode,
+			paths: {"base":"/tf-pixi-sample","assets":"/tf-pixi-sample"},
+			session: {},
+			route: true,
+			spa: false,
+			trailing_slash: "never",
+			hydrate: {
+				status: 200,
+				error: null,
+				nodes: [0, 4],
+				params: {},
+				routeId: ""
+			}
+		});
+	</script>
+  </body>
+</html>
