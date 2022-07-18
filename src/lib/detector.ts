@@ -3,8 +3,10 @@ import "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 
 import * as bodySegmentation from "@tensorflow-models/body-segmentation";
+import type { MediaPipeSelfieSegmentationModelConfig } from "@tensorflow-models/body-segmentation/dist/selfie_segmentation_mediapipe/types";
 import type { Segmentation } from "@tensorflow-models/body-segmentation/dist/shared/calculators/interfaces/common_interfaces";
 import * as faceDetection from "@tensorflow-models/face-detection";
+import type { MediaPipeFaceDetectorModelConfig } from "@tensorflow-models/face-detection/dist/mediapipe/types";
 
 abstract class Detector<T> {
   private listening = false;
@@ -74,8 +76,6 @@ abstract class Detector<T> {
 }
 
 export class FaceDetector extends Detector<faceDetection.Face[]> {
-  private static self?: FaceDetector;
-
   private constructor(private readonly detector: faceDetection.FaceDetector) {
     super();
   }
@@ -84,22 +84,22 @@ export class FaceDetector extends Detector<faceDetection.Face[]> {
     return this.detector.estimateFaces(video);
   }
 
-  static async init() {
-    if (this.self) return this.self;
-
+  static async init(runtime: MediaPipeFaceDetectorModelConfig["runtime"]) {
     const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
     const detector = await faceDetection.createDetector(model, {
-      runtime: "tfjs",
+      runtime,
       maxFaces: 10,
+      solutionPath:
+        runtime === "mediapipe"
+          ? "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection"
+          : undefined,
     });
 
-    return (this.self = new FaceDetector(detector));
+    return new FaceDetector(detector);
   }
 }
 
 export class BodyDetector extends Detector<Segmentation> {
-  private static self?: BodyDetector;
-
   private constructor(
     private readonly detector: bodySegmentation.BodySegmenter
   ) {
@@ -112,15 +112,19 @@ export class BodyDetector extends Detector<Segmentation> {
       .then((segmentations) => segmentations[0]);
   }
 
-  static async init() {
-    if (this.self) return this.self;
-
+  static async init(
+    runtime: MediaPipeSelfieSegmentationModelConfig["runtime"]
+  ) {
     const model = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
     const detector = await bodySegmentation.createSegmenter(model, {
-      runtime: "tfjs",
+      runtime,
+      solutionPath:
+        runtime === "mediapipe"
+          ? "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"
+          : undefined,
     });
 
-    return (this.self = new BodyDetector(detector));
+    return new BodyDetector(detector);
   }
 
   static toImageData(segmentation: Segmentation) {

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { MediaPipeFaceDetectorModelConfig } from "@tensorflow-models/face-detection/dist/mediapipe/types";
+
   import { onDestroy, onMount } from "svelte";
   import CameraView from "~/lib/camera-view";
   import { FaceDetector } from "~/lib/detector";
@@ -21,6 +23,14 @@
   } = {
     items: [],
     selected: "",
+  };
+
+  let runtimeOptions: {
+    items: MediaPipeFaceDetectorModelConfig["runtime"][];
+    selected: MediaPipeFaceDetectorModelConfig["runtime"];
+  } = {
+    items: ["tfjs", "mediapipe"],
+    selected: "tfjs",
   };
 
   onMount(async () => {
@@ -46,7 +56,9 @@
     view?.destroy();
   });
 
-  $: deviceOptions.items.length > 0 && init(deviceOptions.selected);
+  $: deviceOptions.items.length > 0 &&
+    init(deviceOptions.selected, runtimeOptions.selected);
+
   $: {
     if (videoState.status === "running") {
       if (detector) {
@@ -74,16 +86,10 @@
     };
   }
 
-  function onDeviceChanged(
-    e: Event & { currentTarget: EventTarget & HTMLSelectElement }
+  async function init(
+    deviceId: string,
+    runtime: MediaPipeFaceDetectorModelConfig["runtime"]
   ) {
-    deviceOptions = {
-      ...deviceOptions,
-      selected: e.currentTarget.value,
-    };
-  }
-
-  async function init(deviceId: string) {
     const width = 640;
     const height = 480;
 
@@ -124,7 +130,7 @@
           alert("カメラが見つかりません。");
           return undefined;
         }),
-      FaceDetector.init(),
+      FaceDetector.init(runtime),
     ]);
 
     if (!stream) return;
@@ -164,11 +170,16 @@
       開始
     {/if}
   </button>
-  <select on:change={onDeviceChanged}>
+  <select bind:value={deviceOptions.selected}>
     {#each deviceOptions.items as device}
       <option value={device.deviceId}>{device.label}</option>
     {:else}
       <option value="">デバイスなし</option>
+    {/each}
+  </select>
+  <select bind:value={runtimeOptions.selected}>
+    {#each runtimeOptions.items as runtime}
+      <option value={runtime}>{runtime}</option>
     {/each}
   </select>
   <span>顔認識フレームレート: {frameRate}fps</span>

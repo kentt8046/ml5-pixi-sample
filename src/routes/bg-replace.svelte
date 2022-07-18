@@ -22,6 +22,7 @@
 </script>
 
 <script lang="ts">
+  import type { MediaPipeSelfieSegmentationModelConfig } from "@tensorflow-models/body-segmentation/dist/selfie_segmentation_mediapipe/types";
   import { onDestroy, onMount } from "svelte";
   import CameraView from "~/lib/camera-view";
   import { BodyDetector } from "~/lib/detector";
@@ -47,6 +48,14 @@
     selected: "",
   };
 
+  let runtimeOptions: {
+    items: MediaPipeSelfieSegmentationModelConfig["runtime"][];
+    selected: MediaPipeSelfieSegmentationModelConfig["runtime"];
+  } = {
+    items: ["tfjs", "mediapipe"],
+    selected: "tfjs",
+  };
+
   onMount(async () => {
     const devices = (await navigator.mediaDevices.enumerateDevices()).filter(
       (device) => device.kind === "videoinput"
@@ -70,7 +79,8 @@
     view?.destroy();
   });
 
-  $: deviceOptions.items.length > 0 && init(deviceOptions.selected);
+  $: deviceOptions.items.length > 0 &&
+    init(deviceOptions.selected, runtimeOptions.selected);
   $: {
     if (videoState.status === "running") {
       if (detector) {
@@ -99,15 +109,6 @@
     };
   }
 
-  function onDeviceChanged(
-    e: Event & { currentTarget: EventTarget & HTMLSelectElement }
-  ) {
-    deviceOptions = {
-      ...deviceOptions,
-      selected: e.currentTarget.value,
-    };
-  }
-
   async function selectBgImage(e: Event & { currentTarget: HTMLInputElement }) {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
@@ -115,7 +116,10 @@
     view?.setMaskBase(bgImage);
   }
 
-  async function init(deviceId: string) {
+  async function init(
+    deviceId: string,
+    runtime: MediaPipeSelfieSegmentationModelConfig["runtime"]
+  ) {
     const width = 640;
     const height = 480;
 
@@ -156,7 +160,7 @@
           alert("カメラが見つかりません。");
           return undefined;
         }),
-      BodyDetector.init(),
+      BodyDetector.init(runtime),
     ]);
 
     if (!stream) return;
@@ -197,11 +201,16 @@
       開始
     {/if}
   </button>
-  <select on:change={onDeviceChanged}>
+  <select bind:value={deviceOptions.selected}>
     {#each deviceOptions.items as device}
       <option value={device.deviceId}>{device.label}</option>
     {:else}
       <option value="">デバイスなし</option>
+    {/each}
+  </select>
+  <select bind:value={runtimeOptions.selected}>
+    {#each runtimeOptions.items as runtime}
+      <option value={runtime}>{runtime}</option>
     {/each}
   </select>
   <input type="file" accept="png,jpg,jpeg" on:change={selectBgImage} />
