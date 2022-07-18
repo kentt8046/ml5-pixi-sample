@@ -1,16 +1,31 @@
-import { PixelateFilter } from "@pixi/filter-pixelate";
+import type * as Pixelate from "@pixi/filter-pixelate";
 import type { Face } from "@tensorflow-models/face-detection";
-import * as PIXI from "pixi.js";
+import type * as PIXI from "pixi.js";
 
-PIXI.utils.skipHello();
+let pixi: typeof PIXI;
+let pixelate: typeof Pixelate;
+
+let _ready: Promise<void> | undefined;
+
+export function ready() {
+  return (_ready ??= Promise.all([
+    import("pixi.js"),
+    import("@pixi/filter-pixelate"),
+  ]).then(([pixiModule, pixelateModule]) => {
+    pixi = pixiModule;
+    pixi.utils.skipHello();
+
+    pixelate = pixelateModule;
+  }));
+}
 
 const offset = 100;
 
 export default class CameraView {
   private readonly app: PIXI.Application;
   private readonly mosaics: PIXI.Sprite[] = [];
-  private readonly mask = new PIXI.Sprite();
-  private readonly pixelateFilter = new PixelateFilter(20);
+  private readonly mask = new pixi.Sprite();
+  private readonly pixelateFilter = new pixelate.PixelateFilter(20);
   private readonly base: PIXI.Sprite;
 
   constructor(
@@ -19,14 +34,14 @@ export default class CameraView {
     width: number,
     height: number
   ) {
-    this.app = new PIXI.Application({
+    this.app = new pixi.Application({
       view: canvas,
       width,
       height,
       powerPreference: "high-performance",
     });
 
-    this.base = PIXI.Sprite.from(bgResource);
+    this.base = pixi.Sprite.from(bgResource);
     this.base.width = width;
     this.base.height = height;
 
@@ -34,7 +49,7 @@ export default class CameraView {
   }
 
   changeBase(resource: PIXI.TextureSource, width?: number, height?: number) {
-    this.base.texture = PIXI.Texture.from(resource);
+    this.base.texture = pixi.Texture.from(resource);
     if (typeof width === "number") this.base.width = width;
     if (typeof height === "number") this.base.height = height;
   }
@@ -49,7 +64,7 @@ export default class CameraView {
     for (; i < faces.length; i++) {
       const box = faces[i].box;
       const mosaic = (this.mosaics[i] ??= (() => {
-        const sprite = new PIXI.Sprite();
+        const sprite = new pixi.Sprite();
         sprite.filters = [this.pixelateFilter];
         this.app.stage.addChild(sprite);
         return sprite;
@@ -64,9 +79,9 @@ export default class CameraView {
       if (rect.x + rect.w > width) rect.w = width - rect.x;
       if (rect.y + rect.h > height) rect.h = height - rect.y;
 
-      mosaic.texture = new PIXI.Texture(
-        PIXI.BaseTexture.from(video),
-        new PIXI.Rectangle(rect.x, rect.y, rect.w, rect.h)
+      mosaic.texture = new pixi.Texture(
+        pixi.BaseTexture.from(video),
+        new pixi.Rectangle(rect.x, rect.y, rect.w, rect.h)
       );
 
       mosaic.position.x = rect.x;
@@ -82,14 +97,14 @@ export default class CameraView {
   }
 
   setMaskBase(resource: Parameters<typeof PIXI.Texture.from>[0]) {
-    this.mask.texture = PIXI.Texture.from(resource);
+    this.mask.texture = pixi.Texture.from(resource);
   }
 
   applyBgFilter(maskData: ImageData) {
-    const mask = (this.mask.mask ??= new PIXI.Sprite()) as PIXI.Sprite;
+    const mask = (this.mask.mask ??= new pixi.Sprite()) as PIXI.Sprite;
 
-    mask.texture = PIXI.Texture.from(
-      PIXI.BaseTexture.fromBuffer(
+    mask.texture = pixi.Texture.from(
+      pixi.BaseTexture.fromBuffer(
         maskData.data as unknown as Uint8Array,
         maskData.width,
         maskData.height

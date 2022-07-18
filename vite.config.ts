@@ -1,27 +1,16 @@
-import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
-import * as tsConfig from "./tsconfig.json";
-import * as path from "path";
+import { defineConfig } from "vite";
+import { viteExternalsPlugin } from "vite-plugin-externals";
 
 export default defineConfig({
-  build: {
-    outDir: "docs",
-  },
-  plugins: [sveltekit()],
-  resolve: {
-    alias: tsAlias(),
+  plugins: [
+    sveltekit(),
+    viteExternalsPlugin({
+      "@tensorflow-models/body-segmentation": "bodySegmentation",
+      "@tensorflow-models/face-detection": "faceDetection",
+    }),
+  ],
+  ssr: {
+    noExternal: ["pixi.js"],
   },
 });
-
-function tsAlias() {
-  const { paths } = tsConfig.compilerOptions;
-
-  return Object.fromEntries(
-    Object.entries(paths).map(([alias, [realPath]]) => {
-      return [
-        alias.replace(/\*+$/, ""),
-        path.join(__dirname, realPath.replace(/\*+$/, "")),
-      ];
-    })
-  );
-}

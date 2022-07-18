@@ -24,7 +24,7 @@
 <script lang="ts">
   import type { MediaPipeSelfieSegmentationModelConfig } from "@tensorflow-models/body-segmentation/dist/selfie_segmentation_mediapipe/types";
   import { onDestroy, onMount } from "svelte";
-  import CameraView from "~/lib/camera-view";
+  import CameraView, { ready } from "~/lib/camera-view";
   import { BodyDetector } from "~/lib/detector";
 
   let canvas: HTMLCanvasElement;
@@ -161,6 +161,7 @@
           return undefined;
         }),
       BodyDetector.init(runtime),
+      ready(),
     ]);
 
     if (!stream) return;

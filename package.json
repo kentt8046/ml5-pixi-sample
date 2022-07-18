@@ -11,7 +11,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check --plugin-search-dir=. . && eslint .",
-    "format": "prettier --write --plugin-search-dir=. ."
+    "format": "prettier --write --plugin-search-dir=. .",
+    "serve": "rm -fr tf-pixi-sample && cp -r docs tf-pixi-sample && npx http-server -o /tf-pixi-sample"
   },
   "dependencies": {
     "@pixi/filter-pixelate": "^4.1.3",
@@ -23,7 +24,7 @@
     "pixi.js": "^6.4.2"
   },
   "devDependencies": {
-    "@sveltejs/adapter-auto": "next",
+    "@sveltejs/adapter-static": "next",
     "@sveltejs/kit": "next",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.6",
@@ -38,6 +39,7 @@
     "svelte-preprocess": "^4.10.7",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4",
-    "vite": "^3.0.0"
+    "vite": "^3.0.0",
+    "vite-plugin-externals": "^0.5.1"
   }
 }

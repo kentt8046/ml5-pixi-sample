@@ -2,7 +2,7 @@
   import type { MediaPipeFaceDetectorModelConfig } from "@tensorflow-models/face-detection/dist/mediapipe/types";
 
   import { onDestroy, onMount } from "svelte";
-  import CameraView from "~/lib/camera-view";
+  import CameraView, { ready } from "~/lib/camera-view";
   import { FaceDetector } from "~/lib/detector";
 
   let canvas: HTMLCanvasElement;
@@ -131,6 +131,7 @@
           return undefined;
         }),
       FaceDetector.init(runtime),
+      ready(),
     ]);
 
     if (!stream) return;
